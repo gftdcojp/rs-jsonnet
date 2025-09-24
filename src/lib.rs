@@ -1,4 +1,4 @@
-//! # Kotoba-Jsonnet
+//! # Rs-Jsonnet
 //!
 //! A complete Rust implementation of Jsonnet 0.21.0 compatible with the Jsonnet specification.
 //! This crate provides a pure Rust implementation without external C dependencies.
