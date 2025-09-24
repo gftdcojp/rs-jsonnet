@@ -1,0 +1,41 @@
+[package]
+name = "kotoba-jsonnet"
+version = "0.1.22"
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/com-junkawasaki/kotoba"
+description = "Kotoba-specific Jsonnet implementation compatible with Jsonnet 0.21.0"
+keywords = ["jsonnet", "template", "configuration", "json", "yaml"]
+
+[dependencies]
+# Kotoba core dependencies
+kotoba-logic = { path = "../../010-core/009-kotoba-logic" }
+kotoba-types = { path = "../../010-core/010-kotoba-types" }
+kotoba-ir = { path = "../../010-core/011-kotoba-ir" }
+kotoba-rewrite-kernel = { path = "../../010-core/012-kotoba-rewrite-kernel" }
+
+# Standard dependencies
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = { version = "0.9", optional = true }
+thiserror = "2.0"
+anyhow = "1.0"
+regex = "1.10"
+uuid = { version = "1.18", features = ["v4"] }
+parking_lot = "0.12"
+hex = "0.4"
+sha1 = "0.10"
+sha2 = "0.10"
+sha3 = "0.10"
+tokio = { version = "1.0", features = ["full"] }
+async-trait = "0.1"
+reqwest = { version = "0.11", features = ["json", "rustls-tls"] }
+base64 = "0.22"
+md-5 = "0.10"
+
+[features]
+default = []
+yaml = ["serde_yaml"]
+
+[dev-dependencies]
+tokio = { version = "1.0", features = ["full"] }
