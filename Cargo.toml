@@ -3,11 +3,11 @@ name = "rs-jsonnet"
 version = "0.1.22"
 edition = "2021"
 license = "Apache-2.0"
+authors = ["junkawasaki.com"]
 repository = "https://github.com/com-junkawasaki/kotoba"
 description = "Kotoba-specific Jsonnet implementation compatible with Jsonnet 0.21.0"
 keywords = ["jsonnet", "template", "configuration", "json", "yaml"]
 
-[dependencies]
 # Kotoba core dependencies
 kotoba-logic = { path = "../../010-core/009-kotoba-logic" }
 kotoba-types = { path = "../../010-core/010-kotoba-types" }
