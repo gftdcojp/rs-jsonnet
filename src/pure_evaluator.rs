@@ -44,6 +44,14 @@ impl PureEvaluator {
         let mut std_obj = HashMap::new();
         std_obj.insert("length".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Length));
         std_obj.insert("toString".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::ToString));
+        std_obj.insert("join".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Join));
+        std_obj.insert("substr".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Substr));
+        std_obj.insert("split".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Split));
+        std_obj.insert("startsWith".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::StartsWith));
+        std_obj.insert("endsWith".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::EndsWith));
+        std_obj.insert("stringChars".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::StringChars));
+        std_obj.insert("asciiLower".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::AsciiLower));
+        std_obj.insert("asciiUpper".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::AsciiUpper));
         context.variables.insert("std".to_string(), JsonnetValue::Object(std_obj));
 
         Self {
@@ -63,6 +71,14 @@ impl PureEvaluator {
         let mut std_obj = HashMap::new();
         std_obj.insert("length".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Length));
         std_obj.insert("toString".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::ToString));
+        std_obj.insert("join".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Join));
+        std_obj.insert("substr".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Substr));
+        std_obj.insert("split".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Split));
+        std_obj.insert("startsWith".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::StartsWith));
+        std_obj.insert("endsWith".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::EndsWith));
+        std_obj.insert("stringChars".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::StringChars));
+        std_obj.insert("asciiLower".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::AsciiLower));
+        std_obj.insert("asciiUpper".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::AsciiUpper));
         context.variables.insert("std".to_string(), JsonnetValue::Object(std_obj));
 
         // Add TLA variables to context
@@ -90,6 +106,14 @@ impl PureEvaluator {
         let mut std_obj = HashMap::new();
         std_obj.insert("length".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Length));
         std_obj.insert("toString".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::ToString));
+        std_obj.insert("join".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Join));
+        std_obj.insert("substr".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Substr));
+        std_obj.insert("split".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Split));
+        std_obj.insert("startsWith".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::StartsWith));
+        std_obj.insert("endsWith".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::EndsWith));
+        std_obj.insert("stringChars".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::StringChars));
+        std_obj.insert("asciiLower".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::AsciiLower));
+        std_obj.insert("asciiUpper".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::AsciiUpper));
         context.variables.insert("std".to_string(), JsonnetValue::Object(std_obj));
 
         // Add TLA variables to context

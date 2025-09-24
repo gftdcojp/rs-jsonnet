@@ -367,6 +367,14 @@ impl fmt::Display for JsonnetValue {
 pub enum JsonnetBuiltin {
     Length,
     ToString,
+    Join,
+    Substr,
+    Split,
+    StartsWith,
+    EndsWith,
+    StringChars,
+    AsciiLower,
+    AsciiUpper,
     StdLibFunction(String),
     // Add more builtins as needed
 }
@@ -376,6 +384,14 @@ impl JsonnetBuiltin {
         match self {
             JsonnetBuiltin::Length => crate::stdlib::StdLib::length(args),
             JsonnetBuiltin::ToString => crate::stdlib::StdLib::to_string(args),
+            JsonnetBuiltin::Join => crate::stdlib::StdLib::join(args),
+            JsonnetBuiltin::Substr => crate::stdlib::StdLib::substr(args),
+            JsonnetBuiltin::Split => crate::stdlib::StdLib::split(args),
+            JsonnetBuiltin::StartsWith => crate::stdlib::StdLib::starts_with(args),
+            JsonnetBuiltin::EndsWith => crate::stdlib::StdLib::ends_with(args),
+            JsonnetBuiltin::StringChars => crate::stdlib::StdLib::string_chars(args),
+            JsonnetBuiltin::AsciiLower => crate::stdlib::StdLib::ascii_lower(args),
+            JsonnetBuiltin::AsciiUpper => crate::stdlib::StdLib::ascii_upper(args),
             JsonnetBuiltin::StdLibFunction(func_name) => crate::stdlib::StdLib::call_function(func_name, args),
         }
     }
@@ -384,6 +400,14 @@ impl JsonnetBuiltin {
         match self {
             JsonnetBuiltin::Length => crate::stdlib::StdLib::length(args),
             JsonnetBuiltin::ToString => crate::stdlib::StdLib::to_string(args),
+            JsonnetBuiltin::Join => crate::stdlib::StdLib::join(args),
+            JsonnetBuiltin::Substr => crate::stdlib::StdLib::substr(args),
+            JsonnetBuiltin::Split => crate::stdlib::StdLib::split(args),
+            JsonnetBuiltin::StartsWith => crate::stdlib::StdLib::starts_with(args),
+            JsonnetBuiltin::EndsWith => crate::stdlib::StdLib::ends_with(args),
+            JsonnetBuiltin::StringChars => crate::stdlib::StdLib::string_chars(args),
+            JsonnetBuiltin::AsciiLower => crate::stdlib::StdLib::ascii_lower(args),
+            JsonnetBuiltin::AsciiUpper => crate::stdlib::StdLib::ascii_upper(args),
             JsonnetBuiltin::StdLibFunction(func_name) => {
                 let mut stdlib_with_callback = crate::stdlib::StdLibWithCallback::new(callback);
                 stdlib_with_callback.call_function(func_name, args)
@@ -455,6 +479,14 @@ impl Serialize for JsonnetValue {
                 let name = match builtin {
                     JsonnetBuiltin::Length => "length",
                     JsonnetBuiltin::ToString => "toString",
+                    JsonnetBuiltin::Join => "join",
+                    JsonnetBuiltin::Substr => "substr",
+                    JsonnetBuiltin::Split => "split",
+                    JsonnetBuiltin::StartsWith => "startsWith",
+                    JsonnetBuiltin::EndsWith => "endsWith",
+                    JsonnetBuiltin::StringChars => "stringChars",
+                    JsonnetBuiltin::AsciiLower => "asciiLower",
+                    JsonnetBuiltin::AsciiUpper => "asciiUpper",
                     JsonnetBuiltin::StdLibFunction(func_name) => func_name,
                 };
                 map.serialize_entry("name", name)?;

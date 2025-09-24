@@ -1231,6 +1231,95 @@ impl StdLib {
         Ok(JsonnetValue::string(args[0].to_string()))
     }
 
+    /// std.join(sep, arr) - joins array elements with separator
+    pub fn join(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
+        Self::check_args(&args, 2, "join")?;
+        let sep = args[0].as_string()?;
+        let arr = args[1].as_array()?;
+
+        let mut result = String::new();
+        for (i, item) in arr.iter().enumerate() {
+            if i > 0 {
+                result.push_str(&sep);
+            }
+            result.push_str(&item.to_string());
+        }
+
+        Ok(JsonnetValue::string(result))
+    }
+
+    /// std.substr(s, from, len) - extracts substring
+    pub fn substr(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
+        Self::check_args(&args, 3, "substr")?;
+        let s = args[0].as_string()?;
+        let from = args[1].as_number()? as usize;
+        let len = args[2].as_number()? as usize;
+
+        if from >= s.len() {
+            Ok(JsonnetValue::string(String::new()))
+        } else {
+            let end = (from + len).min(s.len());
+            Ok(JsonnetValue::string(s[from..end].to_string()))
+        }
+    }
+
+    /// std.split(str, sep) - splits string by separator
+    pub fn split(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
+        Self::check_args(&args, 2, "split")?;
+        let s = args[0].as_string()?;
+        let sep = args[1].as_string()?;
+
+        let parts: Vec<JsonnetValue> = s.split(&sep)
+            .map(|part| JsonnetValue::string(part.to_string()))
+            .collect();
+
+        Ok(JsonnetValue::array(parts))
+    }
+
+    /// std.startsWith(str, prefix) - checks if string starts with prefix
+    pub fn starts_with(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
+        Self::check_args(&args, 2, "startsWith")?;
+        let s = args[0].as_string()?;
+        let prefix = args[1].as_string()?;
+
+        Ok(JsonnetValue::boolean(s.starts_with(&prefix)))
+    }
+
+    /// std.endsWith(str, suffix) - checks if string ends with suffix
+    pub fn ends_with(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
+        Self::check_args(&args, 2, "endsWith")?;
+        let s = args[0].as_string()?;
+        let suffix = args[1].as_string()?;
+
+        Ok(JsonnetValue::boolean(s.ends_with(&suffix)))
+    }
+
+    /// std.stringChars(str) - splits string into array of characters
+    pub fn string_chars(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
+        Self::check_args(&args, 1, "stringChars")?;
+        let s = args[0].as_string()?;
+
+        let chars: Vec<JsonnetValue> = s.chars()
+            .map(|c| JsonnetValue::string(c.to_string()))
+            .collect();
+
+        Ok(JsonnetValue::array(chars))
+    }
+
+    /// std.asciiLower(str) - converts ASCII characters to lowercase
+    pub fn ascii_lower(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
+        Self::check_args(&args, 1, "asciiLower")?;
+        let s = args[0].as_string()?;
+        Ok(JsonnetValue::string(s.to_ascii_lowercase()))
+    }
+
+    /// std.asciiUpper(str) - converts ASCII characters to uppercase
+    pub fn ascii_upper(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
+        Self::check_args(&args, 1, "asciiUpper")?;
+        let s = args[0].as_string()?;
+        Ok(JsonnetValue::string(s.to_ascii_uppercase()))
+    }
+
     /// std.type(x) - returns type of value as string
     fn type_of(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
         Self::check_args(&args, 1, "type")?;
@@ -1303,32 +1392,7 @@ impl StdLib {
         Ok(JsonnetValue::array(arr))
     }
 
-    /// std.join(sep, arr) - joins array elements with separator
-    fn join(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
-        Self::check_args(&args, 2, "join")?;
-        let sep = args[0].as_string()?;
-        let arr = args[1].as_array()?;
 
-        let mut result = String::new();
-        for (i, item) in arr.iter().enumerate() {
-            if i > 0 {
-                result.push_str(sep);
-            }
-            result.push_str(&item.to_string());
-        }
-
-        Ok(JsonnetValue::string(result))
-    }
-
-    /// std.split(str, sep) - splits string by separator
-    fn split(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
-        Self::check_args(&args, 2, "split")?;
-        let s = args[0].as_string()?;
-        let sep = args[1].as_string()?;
-
-        let parts: Vec<JsonnetValue> = s.split(sep).map(JsonnetValue::string).collect();
-        Ok(JsonnetValue::array(parts))
-    }
 
     /// std.contains(arr, elem) - checks if array contains element
     fn contains(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
@@ -1338,38 +1402,8 @@ impl StdLib {
         Ok(JsonnetValue::boolean(contains))
     }
 
-    /// std.startsWith(str, prefix) - checks if string starts with prefix
-    fn starts_with(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
-        Self::check_args(&args, 2, "startsWith")?;
-        let s = args[0].as_string()?;
-        let prefix = args[1].as_string()?;
-        Ok(JsonnetValue::boolean(s.starts_with(prefix)))
-    }
 
-    /// std.endsWith(str, suffix) - checks if string ends with suffix
-    fn ends_with(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
-        Self::check_args(&args, 2, "endsWith")?;
-        let s = args[0].as_string()?;
-        let suffix = args[1].as_string()?;
-        Ok(JsonnetValue::boolean(s.ends_with(suffix)))
-    }
 
-    /// std.substr(str, from, len) - extracts substring
-    fn substr(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
-        Self::check_args(&args, 3, "substr")?;
-        let s = args[0].as_string()?;
-        let from = args[1].as_number()? as usize;
-        let len = args[2].as_number()? as usize;
-
-        let substr = if from >= s.len() {
-            ""
-        } else {
-            let end = (from + len).min(s.len());
-            &s[from..end]
-        };
-
-        Ok(JsonnetValue::string(substr))
-    }
 
     /// std.char(n) - returns character for codepoint
     fn char_fn(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
@@ -1586,13 +1620,6 @@ impl StdLib {
         Ok(JsonnetValue::string(escaped))
     }
 
-    // Additional string functions
-    fn string_chars(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
-        Self::check_args(&args, 1, "stringChars")?;
-        let s = args[0].as_string()?;
-        let chars: Vec<JsonnetValue> = s.chars().map(|c| JsonnetValue::string(c.to_string())).collect();
-        Ok(JsonnetValue::array(chars))
-    }
 
     fn string_bytes(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
         Self::check_args(&args, 1, "stringBytes")?;
@@ -2312,17 +2339,6 @@ impl StdLib {
         Ok(JsonnetValue::string(hex::encode(result)))
     }
 
-    fn ascii_lower(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
-        Self::check_args(&args, 1, "asciiLower")?;
-        let input = args[0].as_string()?;
-        Ok(JsonnetValue::string(input.to_ascii_lowercase()))
-    }
-
-    fn ascii_upper(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
-        Self::check_args(&args, 1, "asciiUpper")?;
-        let input = args[0].as_string()?;
-        Ok(JsonnetValue::string(input.to_ascii_uppercase()))
-    }
 
     fn flat_map(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
         Self::check_args(&args, 2, "flatMap")?;
