@@ -59,6 +59,11 @@ impl PureEvaluator {
         std_obj.insert("stripChars".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::StripChars));
         std_obj.insert("findSubstr".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::FindSubstr));
         std_obj.insert("repeat".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Repeat));
+        std_obj.insert("set".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Set));
+        std_obj.insert("setMember".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::SetMember));
+        std_obj.insert("setInter".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::SetInter));
+        std_obj.insert("setUnion".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::SetUnion));
+        std_obj.insert("setDiff".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::SetDiff));
         context.variables.insert("std".to_string(), JsonnetValue::Object(std_obj));
 
         Self {
@@ -93,6 +98,11 @@ impl PureEvaluator {
         std_obj.insert("stripChars".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::StripChars));
         std_obj.insert("findSubstr".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::FindSubstr));
         std_obj.insert("repeat".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Repeat));
+        std_obj.insert("set".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Set));
+        std_obj.insert("setMember".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::SetMember));
+        std_obj.insert("setInter".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::SetInter));
+        std_obj.insert("setUnion".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::SetUnion));
+        std_obj.insert("setDiff".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::SetDiff));
         context.variables.insert("std".to_string(), JsonnetValue::Object(std_obj));
 
         // Add TLA variables to context
@@ -135,6 +145,11 @@ impl PureEvaluator {
         std_obj.insert("stripChars".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::StripChars));
         std_obj.insert("findSubstr".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::FindSubstr));
         std_obj.insert("repeat".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Repeat));
+        std_obj.insert("set".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Set));
+        std_obj.insert("setMember".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::SetMember));
+        std_obj.insert("setInter".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::SetInter));
+        std_obj.insert("setUnion".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::SetUnion));
+        std_obj.insert("setDiff".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::SetDiff));
         context.variables.insert("std".to_string(), JsonnetValue::Object(std_obj));
 
         // Add TLA variables to context

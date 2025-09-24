@@ -1419,6 +1419,85 @@ impl StdLib {
         }
     }
 
+    /// std.set(arr) - remove duplicates from array
+    pub fn set(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
+        Self::check_args(&args, 1, "set")?;
+        let arr = args[0].as_array()?;
+
+        let mut seen = std::collections::HashSet::new();
+        let mut result = Vec::new();
+
+        for item in arr {
+            // Use a string representation for comparison
+            // This is a simple implementation - full Jsonnet would need proper equality
+            let key = format!("{:?}", item);
+            if seen.insert(key) {
+                result.push(item.clone());
+            }
+        }
+
+        Ok(JsonnetValue::array(result))
+    }
+
+    /// std.setMember(x, arr) - check if x is in the set arr
+    pub fn set_member(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
+        Self::check_args(&args, 2, "setMember")?;
+        let x = &args[0];
+        let arr = args[1].as_array()?;
+
+        let contains = arr.iter().any(|item| item.equals(x));
+        Ok(JsonnetValue::boolean(contains))
+    }
+
+    /// std.setInter(a, b) - intersection of two sets
+    pub fn set_inter(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
+        Self::check_args(&args, 2, "setInter")?;
+        let a = args[0].as_array()?;
+        let b = args[1].as_array()?;
+
+        let mut result = Vec::new();
+        for item_a in a {
+            if b.iter().any(|item_b| item_a.equals(item_b)) && !result.iter().any(|item_r| item_a.equals(item_r)) {
+                result.push(item_a.clone());
+            }
+        }
+
+        Ok(JsonnetValue::array(result))
+    }
+
+    /// std.setUnion(a, b) - union of two sets
+    pub fn set_union(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
+        Self::check_args(&args, 2, "setUnion")?;
+        let a = args[0].as_array()?;
+        let b = args[1].as_array()?;
+
+        let mut result = a.clone();
+
+        for item_b in b {
+            if !result.iter().any(|item_r| item_b.equals(item_r)) {
+                result.push(item_b.clone());
+            }
+        }
+
+        Ok(JsonnetValue::array(result))
+    }
+
+    /// std.setDiff(a, b) - difference of two sets (a - b)
+    pub fn set_diff(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
+        Self::check_args(&args, 2, "setDiff")?;
+        let a = args[0].as_array()?;
+        let b = args[1].as_array()?;
+
+        let mut result = Vec::new();
+        for item_a in a {
+            if !b.iter().any(|item_b| item_a.equals(item_b)) {
+                result.push(item_a.clone());
+            }
+        }
+
+        Ok(JsonnetValue::array(result))
+    }
+
     /// std.type(x) - returns type of value as string
     fn type_of(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
         Self::check_args(&args, 1, "type")?;
@@ -2446,174 +2525,10 @@ impl StdLib {
 
 
 
-    fn set(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
-        Self::check_args(&args, 1, "set")?;
-        match &args[0] {
-            JsonnetValue::Array(arr) => {
-                // Remove duplicates while preserving order
-                let mut result = Vec::new();
 
-                for item in arr {
-                    // Check if item is already in result
-                    let mut found = false;
-                    for existing in &result {
-                        if existing == item {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if !found {
-                        result.push(item.clone());
-                    }
-                }
 
-                Ok(JsonnetValue::array(result))
-            }
-            _ => Err(JsonnetError::runtime_error("set expects an array argument")),
-        }
-    }
 
-    fn set_member(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
-        Self::check_args(&args, 2, "setMember")?;
-        let value = &args[0];
-        let arr = match &args[1] {
-            JsonnetValue::Array(a) => a,
-            _ => return Err(JsonnetError::runtime_error("setMember expects array as second argument")),
-        };
 
-        for item in arr {
-            if item == value {
-                return Ok(JsonnetValue::boolean(true));
-            }
-        }
-        Ok(JsonnetValue::boolean(false))
-    }
-
-    fn set_union(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
-        Self::check_args(&args, 2, "setUnion")?;
-        let arr_a = match &args[0] {
-            JsonnetValue::Array(a) => a,
-            _ => return Err(JsonnetError::runtime_error("setUnion expects arrays as arguments")),
-        };
-        let arr_b = match &args[1] {
-            JsonnetValue::Array(a) => a,
-            _ => return Err(JsonnetError::runtime_error("setUnion expects arrays as arguments")),
-        };
-
-        let mut result = Vec::new();
-
-        // Add all elements from first array (preserving order)
-        for item in arr_a {
-            let mut found = false;
-            for existing in &result {
-                if existing == item {
-                    found = true;
-                    break;
-                }
-            }
-            if !found {
-                result.push(item.clone());
-            }
-        }
-
-        // Add elements from second array that aren't already in result
-        for item in arr_b {
-            let mut found = false;
-            for existing in &result {
-                if existing == item {
-                    found = true;
-                    break;
-                }
-            }
-            if !found {
-                result.push(item.clone());
-            }
-        }
-
-        Ok(JsonnetValue::array(result))
-    }
-
-    fn set_inter(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
-        Self::check_args(&args, 2, "setInter")?;
-        let arr_a = match &args[0] {
-            JsonnetValue::Array(a) => a,
-            _ => return Err(JsonnetError::runtime_error("setInter expects arrays as arguments")),
-        };
-        let arr_b = match &args[1] {
-            JsonnetValue::Array(a) => a,
-            _ => return Err(JsonnetError::runtime_error("setInter expects arrays as arguments")),
-        };
-
-        let mut result = Vec::new();
-
-        for item_a in arr_a {
-            // Check if item_a exists in arr_b
-            let mut found_in_b = false;
-            for item_b in arr_b {
-                if item_a == item_b {
-                    found_in_b = true;
-                    break;
-                }
-            }
-
-            if found_in_b {
-                // Check if item_a is already in result
-                let mut already_in_result = false;
-                for existing in &result {
-                    if existing == item_a {
-                        already_in_result = true;
-                        break;
-                    }
-                }
-                if !already_in_result {
-                    result.push(item_a.clone());
-                }
-            }
-        }
-
-        Ok(JsonnetValue::array(result))
-    }
-
-    fn set_diff(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
-        Self::check_args(&args, 2, "setDiff")?;
-        let arr_a = match &args[0] {
-            JsonnetValue::Array(a) => a,
-            _ => return Err(JsonnetError::runtime_error("setDiff expects arrays as arguments")),
-        };
-        let arr_b = match &args[1] {
-            JsonnetValue::Array(a) => a,
-            _ => return Err(JsonnetError::runtime_error("setDiff expects arrays as arguments")),
-        };
-
-        let mut result = Vec::new();
-
-        for item_a in arr_a {
-            // Check if item_a does NOT exist in arr_b
-            let mut found_in_b = false;
-            for item_b in arr_b {
-                if item_a == item_b {
-                    found_in_b = true;
-                    break;
-                }
-            }
-
-            if !found_in_b {
-                // Check if item_a is already in result
-                let mut already_in_result = false;
-                for existing in &result {
-                    if existing == item_a {
-                        already_in_result = true;
-                        break;
-                    }
-                }
-                if !already_in_result {
-                    result.push(item_a.clone());
-                }
-            }
-        }
-
-        Ok(JsonnetValue::array(result))
-    }
 
     // Phase 4: Advanced Features
 

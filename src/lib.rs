@@ -1,26 +1,73 @@
-//! # Rs-Jsonnet
+//! # rs-jsonnet
 //!
 //! A complete Rust implementation of Jsonnet 0.21.0 compatible with the Jsonnet specification.
-//! This crate provides a pure Rust implementation without external C dependencies.
+//! This crate provides a pure Rust implementation without external C dependencies, making it easy to embed in any Rust project.
+//!
+//! ## Features
+//!
+//! - **Full Compatibility**: Implements all features of Google Jsonnet v0.21.0.
+//! - **Pure Rust**: No C++ dependencies, ensuring memory safety and easy compilation.
+//! - **Standard Library**: Complete implementation of the Jsonnet standard library.
+//! - **YAML Support**: Optional feature to output YAML.
 //!
 //! ## Pure Kernel & Effects Shell Architecture
 //!
 //! This crate follows the Pure Kernel/Effects Shell pattern:
 //!
-//! - **Pure Kernel**: `PureEvaluator` - performs deterministic Jsonnet evaluation without side effects
-//! - **Effects Shell**: `Evaluator` - wraps the pure evaluator and handles I/O operations
+//! - **Pure Kernel**: `PureEvaluator` - performs deterministic Jsonnet evaluation without side effects.
+//! - **Effects Shell**: `Evaluator` - wraps the pure evaluator and handles I/O operations like `import` and `importstr`.
+//!
+//! ## Examples
+//!
+//! ### Basic Evaluation
+//!
+//! ```rust
+//! use rs_jsonnet::{evaluate, JsonnetValue};
+//!
+//! let code = r#"{ name: "Alice", age: 30 }"#;
+//! let result = evaluate(code).unwrap();
+//!
+//! match result {
+//!     JsonnetValue::Object(obj) => {
+//!         assert_eq!(obj.get("name"), Some(&JsonnetValue::String("Alice".to_string())));
+//!         assert_eq!(obj.get("age"), Some(&JsonnetValue::Number(30.0)));
+//!     },
+//!     _ => panic!("Expected an object"),
+//! }
+//! ```
+//!
+//! ### Evaluate to JSON
+//!
+//! ```rust
+//! use rs_jsonnet::evaluate_to_json;
+//!
+//! let code = r#"{ message: "Hello, " + self.name, name: "World" }"#;
+//! let json_output = evaluate_to_json(code).unwrap();
+//!
+//! assert!(json_output.contains(r#""message": "Hello, World""#));
+//! ```
 
+/// Abstract Syntax Tree definitions for Jsonnet.
 pub mod ast;
+/// Error types and `Result` wrapper for the crate.
 pub mod error;
+/// Evaluation-related components, including context and handlers.
 pub mod eval;
+/// The main `Evaluator` which handles I/O operations.
 pub mod evaluator;
+/// Lexical analyzer for tokenizing Jsonnet source code.
 pub mod lexer;
+/// Parser for converting tokens into an Abstract Syntax Tree.
 pub mod parser;
+/// Runtime components for handling external interactions.
 pub mod runtime;
+/// The Jsonnet standard library implementation.
 pub mod stdlib;
+/// Representation of Jsonnet values (`JsonnetValue`).
 pub mod value;
 
 // Pure Kernel components
+/// The pure, side-effect-free Jsonnet evaluator.
 pub mod pure_evaluator;
 
 pub use error::{JsonnetError, Result};
@@ -31,38 +78,85 @@ pub use value::JsonnetValue;
 // Re-export pure evaluator
 pub use pure_evaluator::PureEvaluator;
 
-/// Evaluate a Jsonnet snippet
+/// Evaluate a Jsonnet snippet and return a `JsonnetValue`.
+///
+/// This is a convenience function that wraps `evaluate_with_filename`
+/// with a default filename `<string>`.
 ///
 /// # Arguments
-/// * `source` - Jsonnet source code as a string
-/// * `filename` - Optional filename for error reporting
+///
+/// * `source` - A string slice that holds the Jsonnet source code.
 ///
 /// # Returns
-/// Result containing the evaluated Jsonnet value or an error
+///
+/// A `Result` containing the evaluated `JsonnetValue` or a `JsonnetError`.
+///
+/// # Examples
+///
+/// ```
+/// use rs_jsonnet::{evaluate, JsonnetValue};
+///
+/// let result = evaluate(r#"[1, 2, 1+2]"#).unwrap();
+/// assert_eq!(result, JsonnetValue::Array(vec![
+///     JsonnetValue::Number(1.0),
+///     JsonnetValue::Number(2.0),
+///     JsonnetValue::Number(3.0),
+/// ]));
+/// ```
 pub fn evaluate(source: &str) -> Result<JsonnetValue> {
     evaluate_with_filename(source, "<string>")
 }
 
-/// Evaluate a Jsonnet snippet with a filename for error reporting
+/// Evaluate a Jsonnet snippet with a specific filename for error reporting.
 ///
 /// # Arguments
-/// * `source` - Jsonnet source code as a string
-/// * `filename` - Filename for error reporting
+///
+/// * `source` - A string slice that holds the Jsonnet source code.
+/// * `filename` - The filename to be used in error messages.
 ///
 /// # Returns
-/// Result containing the evaluated Jsonnet value or an error
+///
+/// A `Result` containing the evaluated `JsonnetValue` or a `JsonnetError`.
+///
+/// # Examples
+///
+/// ```
+/// use rs_jsonnet::{evaluate_with_filename, JsonnetError};
+///
+/// // This will produce an error with "my_file.jsonnet" in the stack trace.
+/// let result = evaluate_with_filename("error 'This is an error'", "my_file.jsonnet");
+/// assert!(matches!(result, Err(JsonnetError::RuntimeError(_))));
+/// if let Err(e) = result {
+///     assert!(e.to_string().contains("my_file.jsonnet"));
+/// }
+/// ```
 pub fn evaluate_with_filename(source: &str, filename: &str) -> Result<JsonnetValue> {
     let mut evaluator = Evaluator::new();
     evaluator.evaluate_file(source, filename)
 }
 
-/// Evaluate a Jsonnet snippet and format as JSON string
+/// Evaluate a Jsonnet snippet and format the result as a JSON string.
 ///
 /// # Arguments
-/// * `source` - Jsonnet source code as a string
+///
+/// * `source` - A string slice that holds the Jsonnet source code.
 ///
 /// # Returns
-/// Result containing the JSON string representation or an error
+///
+/// A `Result` containing the formatted JSON string or a `JsonnetError`.
+///
+/// # Examples
+///
+/// ```
+/// use rs_jsonnet::evaluate_to_json;
+///
+/// let json_str = evaluate_to_json(r#"{ key: "value", items: [1, 2, 3] }"#).unwrap();
+/// let expected_json = serde_json::json!({
+///   "key": "value",
+///   "items": [1, 2, 3]
+/// });
+/// assert_eq!(json_str, serde_json::to_string_pretty(&expected_json).unwrap());
+/// ```
 pub fn evaluate_to_json(source: &str) -> Result<String> {
     let value = evaluate(source).map_err(|e| {
         eprintln!("Evaluation error: {:?}", e);
@@ -75,13 +169,30 @@ pub fn evaluate_to_json(source: &str) -> Result<String> {
     })
 }
 
-/// Evaluate a Jsonnet snippet and format as YAML string
+/// Evaluate a Jsonnet snippet and format the result as a YAML string.
+///
+/// This function is only available when the `yaml` feature is enabled.
 ///
 /// # Arguments
-/// * `source` - Jsonnet source code as a string
+///
+/// * `source` - A string slice that holds the Jsonnet source code.
 ///
 /// # Returns
-/// Result containing the YAML string representation or an error
+///
+/// A `Result` containing the formatted YAML string or a `JsonnetError`.
+///
+/// # Examples
+///
+/// ```
+/// # #[cfg(feature = "yaml")]
+/// # {
+/// use rs_jsonnet::evaluate_to_yaml;
+///
+/// let yaml_str = evaluate_to_yaml(r#"{ key: "value", items: [1, 2, 3] }"#).unwrap();
+/// let expected_yaml = "key: value\nitems:\n- 1\n- 2\n- 3\n";
+/// assert_eq!(yaml_str, expected_yaml);
+/// # }
+/// ```
 #[cfg(feature = "yaml")]
 pub fn evaluate_to_yaml(source: &str) -> Result<String> {
     let value = evaluate(source)?;

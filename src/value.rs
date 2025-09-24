@@ -382,6 +382,11 @@ pub enum JsonnetBuiltin {
     StripChars,
     FindSubstr,
     Repeat,
+    Set,
+    SetMember,
+    SetInter,
+    SetUnion,
+    SetDiff,
     StdLibFunction(String),
     // Add more builtins as needed
 }
@@ -406,6 +411,11 @@ impl JsonnetBuiltin {
             JsonnetBuiltin::StripChars => crate::stdlib::StdLib::strip_chars(args),
             JsonnetBuiltin::FindSubstr => crate::stdlib::StdLib::find_substr(args),
             JsonnetBuiltin::Repeat => crate::stdlib::StdLib::repeat(args),
+            JsonnetBuiltin::Set => crate::stdlib::StdLib::set(args),
+            JsonnetBuiltin::SetMember => crate::stdlib::StdLib::set_member(args),
+            JsonnetBuiltin::SetInter => crate::stdlib::StdLib::set_inter(args),
+            JsonnetBuiltin::SetUnion => crate::stdlib::StdLib::set_union(args),
+            JsonnetBuiltin::SetDiff => crate::stdlib::StdLib::set_diff(args),
             JsonnetBuiltin::StdLibFunction(func_name) => crate::stdlib::StdLib::call_function(func_name, args),
         }
     }
@@ -429,6 +439,11 @@ impl JsonnetBuiltin {
             JsonnetBuiltin::StripChars => crate::stdlib::StdLib::strip_chars(args),
             JsonnetBuiltin::FindSubstr => crate::stdlib::StdLib::find_substr(args),
             JsonnetBuiltin::Repeat => crate::stdlib::StdLib::repeat(args),
+            JsonnetBuiltin::Set => crate::stdlib::StdLib::set(args),
+            JsonnetBuiltin::SetMember => crate::stdlib::StdLib::set_member(args),
+            JsonnetBuiltin::SetInter => crate::stdlib::StdLib::set_inter(args),
+            JsonnetBuiltin::SetUnion => crate::stdlib::StdLib::set_union(args),
+            JsonnetBuiltin::SetDiff => crate::stdlib::StdLib::set_diff(args),
             JsonnetBuiltin::StdLibFunction(func_name) => {
                 let mut stdlib_with_callback = crate::stdlib::StdLibWithCallback::new(callback);
                 stdlib_with_callback.call_function(func_name, args)
@@ -515,6 +530,11 @@ impl Serialize for JsonnetValue {
                     JsonnetBuiltin::StripChars => "stripChars",
                     JsonnetBuiltin::FindSubstr => "findSubstr",
                     JsonnetBuiltin::Repeat => "repeat",
+                    JsonnetBuiltin::Set => "set",
+                    JsonnetBuiltin::SetMember => "setMember",
+                    JsonnetBuiltin::SetInter => "setInter",
+                    JsonnetBuiltin::SetUnion => "setUnion",
+                    JsonnetBuiltin::SetDiff => "setDiff",
                     JsonnetBuiltin::StdLibFunction(func_name) => func_name,
                 };
                 map.serialize_entry("name", name)?;

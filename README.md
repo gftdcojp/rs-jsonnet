@@ -1,6 +1,26 @@
 # rs-jsonnet ( kotoba lang fork )
 
+[![Crates.io](https://img.shields.io/crates/v/rs-jsonnet.svg)](https://crates.io/crates/rs-jsonnet)
+[![Docs.rs](https://docs.rs/rs-jsonnet/badge.svg)](https://docs.rs/rs-jsonnet)
+[![License](https://img.shields.io/crates/l/rs-jsonnet.svg)](https://github.com/com-junkawasaki/rs-jsonnet/blob/main/LICENSE)
+[![CI](https://github.com/com-junkawasaki/rs-jsonnet/actions/workflows/ci.yml/badge.svg)](https://github.com/com-junkawasaki/rs-jsonnet/actions/workflows/ci.yml)
+
 Pure Rust implementation of Jsonnet 0.21.0, fully compatible with Google Jsonnet.
+
+## 📦 Installation
+
+Add this to your `Cargo.toml`:
+
+```toml
+[dependencies]
+rs-jsonnet = "0.1.22"
+```
+
+Or run:
+
+```bash
+cargo add rs-jsonnet
+```
 
 ## 🎯 Jsonnet 0.21.0 Complete Compatibility
 
@@ -205,4 +225,4 @@ This implementation aims for 100% compatibility with Google Jsonnet 0.21.0. If y
 
 ### 📄 License
 
-MIT OR Apache-2.0 (matching Google Jsonnet)
+Licensed under the Apache License, Version 2.0.
