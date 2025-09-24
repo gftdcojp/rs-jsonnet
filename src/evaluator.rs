@@ -52,11 +52,11 @@ impl Evaluator {
     /// Load external variables from a file (effects: file I/O)
     pub fn load_ext_vars_from_file<P: AsRef<Path>>(&mut self, path: P) -> Result<()> {
         let content = fs::read_to_string(path)
-            .map_err(|e| JsonnetError::IoError(format!("Failed to read ext vars file: {}", e)))?;
+            .map_err(|e| JsonnetError::io_error(format!("Failed to read ext vars file: {}", e)))?;
 
         // Parse as JSON (simplified - real implementation would handle Jsonnet format)
         let vars: HashMap<String, String> = serde_json::from_str(&content)
-            .map_err(|e| JsonnetError::ParseError(format!("Invalid ext vars JSON: {}", e)))?;
+            .map_err(|e| JsonnetError::runtime_error(format!("Invalid ext vars JSON: {}", e)))?;
 
         self.ext_vars.extend(vars);
         self.update_pure_evaluator();
@@ -77,7 +77,7 @@ impl Evaluator {
     /// Evaluate a file from disk (effects: file I/O)
     pub fn evaluate_file_from_path<P: AsRef<Path>>(&mut self, path: P) -> Result<JsonnetValue> {
         let source = fs::read_to_string(path)
-            .map_err(|e| JsonnetError::IoError(format!("Failed to read file: {}", e)))?;
+            .map_err(|e| JsonnetError::io_error(format!("Failed to read file: {}", e)))?;
 
         self.evaluate(&source)
     }

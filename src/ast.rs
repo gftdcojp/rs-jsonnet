@@ -21,6 +21,14 @@ pub enum Expr {
     Array(Vec<Expr>),
     /// Function call
     Call(Box<Expr>, Vec<Expr>),
+    /// Array indexing
+    ArrayAccess(Box<Expr>, Box<Expr>),
+    /// Object field access
+    FieldAccess(Box<Expr>, String),
+    /// Local variable bindings
+    Local(Vec<(String, Expr)>, Box<Expr>),
+    /// Conditional expression
+    Conditional(Box<Expr>, Box<Expr>, Box<Expr>),
     /// Binary operation
     BinaryOp(BinaryOp, Box<Expr>, Box<Expr>),
     /// Unary operation

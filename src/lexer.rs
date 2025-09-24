@@ -205,7 +205,7 @@ impl Lexer {
                     }
                     let num_str = &self.source[start..self.position];
                     let num = num_str.parse().map_err(|_| {
-                        JsonnetError::Lexical(format!("Invalid number: {}", num_str))
+                        JsonnetError::parse_error(self.line, self.column, format!("Invalid number: {}", num_str))
                     })?;
                     tokens.push(Token::Number(num));
                 }
@@ -227,7 +227,7 @@ impl Lexer {
                         let string = &self.source[start..self.position - 1];
                         tokens.push(Token::String(string.to_string()));
                     } else {
-                        return Err(JsonnetError::Lexical("Unterminated string".to_string()));
+                        return Err(JsonnetError::parse_error(self.line, self.column, "Unterminated string"));
                     }
                 }
                 // Operators and punctuation
@@ -332,7 +332,7 @@ impl Lexer {
                         tokens.push(Token::And);
                         self.advance_by("&&");
                     } else {
-                        return Err(JsonnetError::Lexical("Unexpected character: &".to_string()));
+                        return Err(JsonnetError::parse_error(self.line, self.column, "Unexpected character: &"));
                     }
                 }
                 '|' => {
@@ -340,11 +340,11 @@ impl Lexer {
                         tokens.push(Token::Or);
                         self.advance_by("||");
                     } else {
-                        return Err(JsonnetError::Lexical("Unexpected character: |".to_string()));
+                        return Err(JsonnetError::parse_error(self.line, self.column, "Unexpected character: |"));
                     }
                 }
                 _ => {
-                    return Err(JsonnetError::Lexical(format!("Unexpected character: {}", ch)));
+                    return Err(JsonnetError::parse_error(self.line, self.column, format!("Unexpected character: {}", ch)));
                 }
             }
         }
