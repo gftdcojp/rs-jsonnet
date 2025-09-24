@@ -1,4 +1,4 @@
-# rs-jsonnet ( kotoba lang )
+# rs-jsonnet ( kotoba lang fork )
 
 Pure Rust implementation of Jsonnet 0.21.0, fully compatible with Google Jsonnet.
 
