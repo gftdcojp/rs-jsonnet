@@ -366,6 +366,7 @@ impl fmt::Display for JsonnetValue {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum JsonnetBuiltin {
     Length,
+    ToString,
     StdLibFunction(String),
     // Add more builtins as needed
 }
@@ -374,6 +375,7 @@ impl JsonnetBuiltin {
     pub fn call(&self, args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
         match self {
             JsonnetBuiltin::Length => crate::stdlib::StdLib::length(args),
+            JsonnetBuiltin::ToString => crate::stdlib::StdLib::to_string(args),
             JsonnetBuiltin::StdLibFunction(func_name) => crate::stdlib::StdLib::call_function(func_name, args),
         }
     }
@@ -381,6 +383,7 @@ impl JsonnetBuiltin {
     pub fn call_with_callback(&self, callback: &mut dyn crate::stdlib::FunctionCallback, args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
         match self {
             JsonnetBuiltin::Length => crate::stdlib::StdLib::length(args),
+            JsonnetBuiltin::ToString => crate::stdlib::StdLib::to_string(args),
             JsonnetBuiltin::StdLibFunction(func_name) => {
                 let mut stdlib_with_callback = crate::stdlib::StdLibWithCallback::new(callback);
                 stdlib_with_callback.call_function(func_name, args)
@@ -451,6 +454,7 @@ impl Serialize for JsonnetValue {
                 map.serialize_entry("type", "builtin")?;
                 let name = match builtin {
                     JsonnetBuiltin::Length => "length",
+                    JsonnetBuiltin::ToString => "toString",
                     JsonnetBuiltin::StdLibFunction(func_name) => func_name,
                 };
                 map.serialize_entry("name", name)?;

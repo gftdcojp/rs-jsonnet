@@ -27,6 +27,8 @@ pub enum Expr {
     FieldAccess(Box<Expr>, String),
     /// Local variable bindings
     Local(Vec<(String, Expr)>, Box<Expr>),
+    /// Function definition
+    Function(Vec<String>, Box<Expr>),
     /// Conditional expression
     Conditional(Box<Expr>, Box<Expr>, Box<Expr>),
     /// Binary operation

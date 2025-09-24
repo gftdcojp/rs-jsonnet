@@ -7,7 +7,7 @@ use crate::ast::Expr;
 use crate::error::{JsonnetError, Result};
 use crate::lexer::Lexer;
 use crate::parser::Parser;
-use crate::value::JsonnetValue;
+use crate::value::{JsonnetBuiltin, JsonnetFunction, JsonnetValue};
 use std::collections::HashMap;
 
 /// Pure Jsonnet evaluator - performs only deterministic computations
@@ -36,12 +36,20 @@ impl Default for PureEvaluator {
 impl PureEvaluator {
     /// Create a new pure evaluator with no external configuration
     pub fn new() -> Self {
+        let mut context = EvaluationContext {
+            variables: HashMap::new(),
+        };
+
+        // Initialize std object with builtin functions
+        let mut std_obj = HashMap::new();
+        std_obj.insert("length".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Length));
+        std_obj.insert("toString".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::ToString));
+        context.variables.insert("std".to_string(), JsonnetValue::Object(std_obj));
+
         Self {
             tla_args: HashMap::new(),
             ext_vars: HashMap::new(),
-            context: EvaluationContext {
-                variables: HashMap::new(),
-            },
+            context,
         }
     }
 
@@ -50,6 +58,12 @@ impl PureEvaluator {
         let mut context = EvaluationContext {
             variables: HashMap::new(),
         };
+
+        // Initialize std object
+        let mut std_obj = HashMap::new();
+        std_obj.insert("length".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Length));
+        std_obj.insert("toString".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::ToString));
+        context.variables.insert("std".to_string(), JsonnetValue::Object(std_obj));
 
         // Add TLA variables to context
         for (key, value_str) in &tla_args {
@@ -71,6 +85,12 @@ impl PureEvaluator {
         let mut context = EvaluationContext {
             variables: HashMap::new(),
         };
+
+        // Initialize std object
+        let mut std_obj = HashMap::new();
+        std_obj.insert("length".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Length));
+        std_obj.insert("toString".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::ToString));
+        context.variables.insert("std".to_string(), JsonnetValue::Object(std_obj));
 
         // Add TLA variables to context
         for (key, value_str) in &tla_args {
@@ -211,6 +231,15 @@ impl PureEvaluator {
 
                 result
             }
+            Expr::Function(params, body) => {
+                // Create a function value that captures the current environment
+                let environment = self.context.variables.clone();
+                Ok(JsonnetValue::Function(JsonnetFunction {
+                    parameters: params.clone(),
+                    body: body.clone(),
+                    environment,
+                }))
+            }
             Expr::Conditional(condition, then_branch, else_branch) => {
                 let cond_val = self.evaluate_expression(*condition)?;
                 match cond_val {
@@ -219,15 +248,49 @@ impl PureEvaluator {
                     _ => Err(JsonnetError::type_error("Condition must evaluate to boolean")),
                 }
             }
-            Expr::Call(func, args) => {
-                // For now, only support simple function calls
-                let _func_val = self.evaluate_expression(*func)?;
-                let mut arg_vals = Vec::new();
-                for arg in args {
-                    arg_vals.push(self.evaluate_expression(arg)?);
+            Expr::Call(func_expr, args) => {
+                // Evaluate the function expression
+                let func_val = self.evaluate_expression(*func_expr)?;
+
+                match func_val {
+                    JsonnetValue::Function(func) => {
+                        // Evaluate arguments
+                        let mut arg_vals = Vec::new();
+                        for arg in args {
+                            arg_vals.push(self.evaluate_expression(arg)?);
+                        }
+
+                        // Create new scope with function parameters
+                        let mut func_scope = func.environment.clone();
+
+                        // Bind parameters to arguments
+                        if func.parameters.len() != arg_vals.len() {
+                            return Err(JsonnetError::runtime_error(
+                                format!("Expected {} arguments, got {}", func.parameters.len(), arg_vals.len())
+                            ));
+                        }
+
+                        for (param, arg_val) in func.parameters.iter().zip(arg_vals) {
+                            func_scope.insert(param.clone(), arg_val);
+                        }
+
+                        // Evaluate function body in the new scope
+                        let old_context = std::mem::replace(&mut self.context.variables, func_scope);
+                        let result = self.evaluate_expression(*func.body.clone());
+                        self.context.variables = old_context;
+
+                        result
+                    }
+                    JsonnetValue::Builtin(builtin) => {
+                        // Handle builtin functions
+                        let mut arg_vals = Vec::new();
+                        for arg in args {
+                            arg_vals.push(self.evaluate_expression(arg)?);
+                        }
+                        self.call_builtin_function(&builtin, arg_vals)
+                    }
+                    _ => Err(JsonnetError::type_error("Cannot call non-function value")),
                 }
-                // TODO: Implement function call evaluation
-                Err(JsonnetError::runtime_error("Function calls not yet implemented"))
             }
             Expr::Identifier(name) => {
                 // Look up variable in current context
@@ -251,6 +314,11 @@ impl PureEvaluator {
             JsonnetValue::Function(_) => "[function]".to_string(),
             JsonnetValue::Builtin(_) => "[builtin]".to_string(),
         }
+    }
+
+    /// Call a builtin function
+    fn call_builtin_function(&self, builtin: &JsonnetBuiltin, args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
+        builtin.call(args)
     }
 
     fn evaluate_binary_op(&self, op: crate::ast::BinaryOp, left: JsonnetValue, right: JsonnetValue) -> Result<JsonnetValue> {

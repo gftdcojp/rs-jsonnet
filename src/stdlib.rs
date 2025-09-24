@@ -1225,6 +1225,12 @@ impl StdLib {
         }
     }
 
+    /// std.toString(x) - converts value to string
+    pub fn to_string(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
+        Self::check_args(&args, 1, "toString")?;
+        Ok(JsonnetValue::string(args[0].to_string()))
+    }
+
     /// std.type(x) - returns type of value as string
     fn type_of(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
         Self::check_args(&args, 1, "type")?;
@@ -1385,11 +1391,6 @@ impl StdLib {
         }
     }
 
-    /// std.toString(x) - converts value to string
-    fn to_string(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {
-        Self::check_args(&args, 1, "toString")?;
-        Ok(JsonnetValue::string(args[0].to_string()))
-    }
 
     /// std.parseInt(str) - parses string as integer
     fn parse_int(args: Vec<JsonnetValue>) -> Result<JsonnetValue> {

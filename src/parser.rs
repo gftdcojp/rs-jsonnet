@@ -31,7 +31,17 @@ impl Parser {
 
     /// Parse the tokens into an AST
     pub fn parse(&mut self) -> Result<Expr> {
-        let expr = self.parse_expression()?;
+        // Parse semicolon-separated expressions, return the last one
+        let mut expr = self.parse_expression()?;
+
+        while matches!(self.current(), Some(Token::Semicolon)) {
+            self.advance(); // consume ';'
+            if matches!(self.current(), Some(Token::Eof)) {
+                break; // trailing semicolon is ok
+            }
+            expr = self.parse_expression()?;
+        }
+
         if !matches!(self.current(), Some(Token::Eof)) {
             return Err(JsonnetError::parse_error(
                 0, 0, // TODO: track line/column properly
@@ -53,34 +63,26 @@ impl Parser {
 
             let mut bindings = Vec::new();
 
-            // Parse first binding
-            let name = match self.current().cloned() {
-                Some(Token::Identifier(id)) => {
-                    self.advance();
-                    id
-                }
-                _ => return Err(JsonnetError::parse_error(0, 0, "Expected variable name after 'local'")),
-            };
-
-            self.expect_token(Token::Equal)?;
-            let value = self.parse_expression()?;
-            bindings.push((name, value));
-
-            // Parse additional bindings (comma-separated)
-            while matches!(self.current(), Some(Token::Comma)) {
-                self.advance(); // consume ','
-
+            loop {
+                // Parse variable name
                 let name = match self.current().cloned() {
                     Some(Token::Identifier(id)) => {
                         self.advance();
                         id
                     }
-                    _ => return Err(JsonnetError::parse_error(0, 0, "Expected variable name after ','")),
+                    _ => return Err(JsonnetError::parse_error(0, 0, "Expected variable name after 'local'")),
                 };
 
                 self.expect_token(Token::Equal)?;
                 let value = self.parse_expression()?;
                 bindings.push((name, value));
+
+                // Check for comma (multiple bindings) or semicolon (end of bindings)
+                if matches!(self.current(), Some(Token::Comma)) {
+                    self.advance(); // consume ','
+                } else {
+                    break;
+                }
             }
 
             self.expect_token(Token::Semicolon)?;
@@ -246,6 +248,7 @@ impl Parser {
             }
             Some(Token::LeftBrace) => self.parse_object(),
             Some(Token::LeftBracket) => self.parse_array(),
+            Some(Token::Function) => self.parse_function(),
             Some(Token::LeftParen) => {
                 self.advance(); // consume '('
                 let expr = self.parse_expression()?;
@@ -256,7 +259,7 @@ impl Parser {
         }
     }
 
-    /// Parse postfix expressions (primary + indexing/field access)
+    /// Parse postfix expressions (primary + indexing/field access/function calls)
     fn parse_postfix(&mut self) -> Result<Expr> {
         let mut expr = self.parse_primary()?;
 
@@ -277,6 +280,26 @@ impl Parser {
                         }
                         _ => return Err(JsonnetError::parse_error(0, 0, "Expected field name after '.'")),
                     }
+                }
+                Some(Token::LeftParen) => {
+                    // Function call
+                    self.advance(); // consume '('
+                    let mut args = Vec::new();
+
+                    if !matches!(self.current(), Some(Token::RightParen)) {
+                        loop {
+                            let arg = self.parse_expression()?;
+                            args.push(arg);
+
+                            if !matches!(self.current(), Some(Token::Comma)) {
+                                break;
+                            }
+                            self.advance(); // consume ','
+                        }
+                    }
+
+                    self.expect_token(Token::RightParen)?;
+                    expr = Expr::Call(Box::new(expr), args);
                 }
                 _ => break,
             }
@@ -339,6 +362,39 @@ impl Parser {
 
         self.expect_token(Token::RightBracket)?;
         Ok(Expr::Array(elements))
+    }
+
+    /// Parse function definition
+    fn parse_function(&mut self) -> Result<Expr> {
+        self.expect_token(Token::Function)?;
+
+        // Parse parameters
+        self.expect_token(Token::LeftParen)?;
+        let mut params = Vec::new();
+
+        if !matches!(self.current(), Some(Token::RightParen)) {
+            loop {
+                match self.current().cloned() {
+                    Some(Token::Identifier(param)) => {
+                        self.advance();
+                        params.push(param);
+                    }
+                    _ => return Err(JsonnetError::parse_error(0, 0, "Expected parameter name")),
+                }
+
+                if !matches!(self.current(), Some(Token::Comma)) {
+                    break;
+                }
+                self.advance(); // consume ','
+            }
+        }
+
+        self.expect_token(Token::RightParen)?;
+
+        // Parse function body
+        let body = self.parse_expression()?;
+
+        Ok(Expr::Function(params, Box::new(body)))
     }
 
     /// Expect a specific token, advance if found
