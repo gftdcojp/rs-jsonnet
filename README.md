@@ -1,4 +1,4 @@
-# Kotoba Jsonnet
+# rs-jsonnet ( kotoba lang )
 
 Pure Rust implementation of Jsonnet 0.21.0, fully compatible with Google Jsonnet.
 
@@ -160,7 +160,7 @@ Tests cover:
 ### 📚 Usage
 
 ```rust
-use kotoba_jsonnet::{evaluate, evaluate_to_json};
+use rs_jsonnet::{evaluate, evaluate_to_json};
 
 // Evaluate Jsonnet code
 let result = evaluate(r#"
@@ -180,15 +180,6 @@ let json = evaluate_to_json(r#"{ name: "World", count: 42 }"#)?;
 println!("JSON: {}", json);
 ```
 
-### 🔗 Integration with Kotoba
-
-This Jsonnet implementation is integrated into the broader Kotoba ecosystem:
-
-- Used for configuration parsing (`.kotoba` files)
-- Powers the frontend framework's component definitions
-- Enables deployment configuration templating
-- Provides runtime configuration evaluation
-
 ### ⚡ Performance
 
 - **Zero-copy evaluation** where possible
@@ -198,7 +189,7 @@ This Jsonnet implementation is integrated into the broader Kotoba ecosystem:
 
 ### 🔄 Compatibility Matrix
 
-| Feature | Google Jsonnet 0.21.0 | kotoba-jsonnet |
+| Feature | Google Jsonnet 0.21.0 | rs-jsonnet |
 |---------|----------------------|----------------|
 | Language spec | ✅ Complete | ✅ Complete |
 | Standard library | ✅ 80+ functions | ✅ 80+ functions |

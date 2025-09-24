@@ -4,17 +4,11 @@ version = "0.1.22"
 edition = "2021"
 license = "Apache-2.0"
 authors = ["junkawasaki.com"]
-repository = "https://github.com/com-junkawasaki/kotoba"
-description = "Kotoba-specific Jsonnet implementation compatible with Jsonnet 0.21.0"
+repository = "https://github.com/com-junkawasaki/rs-jsonnet"
+description = "Pure Rust implementation of Jsonnet 0.21.0 compatible with Google Jsonnet"
 keywords = ["jsonnet", "template", "configuration", "json", "yaml"]
 
-# Kotoba core dependencies
-kotoba-logic = { path = "../../010-core/009-kotoba-logic" }
-kotoba-types = { path = "../../010-core/010-kotoba-types" }
-kotoba-ir = { path = "../../010-core/011-kotoba-ir" }
-kotoba-rewrite-kernel = { path = "../../010-core/012-kotoba-rewrite-kernel" }
-
-# Standard dependencies
+[dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_yaml = { version = "0.9", optional = true }
