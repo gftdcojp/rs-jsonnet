@@ -29,6 +29,15 @@ pub enum Expr {
     Local(Vec<(String, Expr)>, Box<Expr>),
     /// Function definition
     Function(Vec<String>, Box<Expr>),
+    /// String interpolation
+    StringInterpolation(Vec<StringPart>),
+    /// Array comprehension
+    ArrayComprehension {
+        expr: Box<Expr>,
+        var_name: String,
+        array_expr: Box<Expr>,
+        condition: Option<Box<Expr>>,
+    },
     /// Conditional expression
     Conditional(Box<Expr>, Box<Expr>, Box<Expr>),
     /// Binary operation
@@ -88,4 +97,13 @@ pub enum UnaryOp {
     Not,
     /// Plus
     Plus,
+}
+
+/// Parts of a string interpolation
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum StringPart {
+    /// Literal text
+    Literal(String),
+    /// Variable interpolation
+    Interpolation(Expr),
 }

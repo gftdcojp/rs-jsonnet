@@ -1,6 +1,6 @@
 //! Parser for Jsonnet AST
 
-use crate::ast::{BinaryOp, Expr, Stmt, UnaryOp};
+use crate::ast::{BinaryOp, Expr, Stmt, StringPart, UnaryOp};
 use crate::error::{JsonnetError, Result};
 use crate::lexer::Token;
 
@@ -228,7 +228,12 @@ impl Parser {
         match self.current().cloned() {
             Some(Token::String(s)) => {
                 self.advance();
-                Ok(Expr::String(s))
+                // Check if this string contains interpolation
+                if s.contains("%(") && s.contains(")s") {
+                    self.parse_string_interpolation(&s)
+                } else {
+                    Ok(Expr::String(s))
+                }
             }
             Some(Token::Number(n)) => {
                 self.advance();
@@ -247,7 +252,10 @@ impl Parser {
                 Ok(Expr::Identifier(id))
             }
             Some(Token::LeftBrace) => self.parse_object(),
-            Some(Token::LeftBracket) => self.parse_array(),
+            Some(Token::LeftBracket) => {
+                self.advance(); // consume '['
+                self.parse_array()
+            },
             Some(Token::Function) => self.parse_function(),
             Some(Token::LeftParen) => {
                 self.advance(); // consume '('
@@ -345,24 +353,62 @@ impl Parser {
 
     /// Parse array literal [ expr, expr, ... ]
     fn parse_array(&mut self) -> Result<Expr> {
-        self.expect_token(Token::LeftBracket)?;
-        let mut elements = Vec::new();
+        // Note: LeftBracket is already consumed
 
-        if !matches!(self.current(), Some(Token::RightBracket)) {
-            loop {
-                let expr = self.parse_expression()?;
-                elements.push(expr);
+        if matches!(self.current(), Some(Token::RightBracket)) {
+            // Empty array
+            self.advance(); // consume ']'
+            return Ok(Expr::Array(Vec::new()));
+        }
 
-                if !matches!(self.current(), Some(Token::Comma)) {
-                    break;
+        // Parse first expression
+        let expr = self.parse_expression()?;
+
+        // Check if this is an array comprehension (next token is 'for')
+        if matches!(self.current(), Some(Token::For)) {
+            // Array comprehension
+            self.advance(); // consume 'for'
+            let var_name = match self.current().cloned() {
+                Some(Token::Identifier(name)) => {
+                    self.advance();
+                    name
                 }
-                self.advance(); // consume ','
-            }
+                _ => return Err(JsonnetError::parse_error(0, 0, "Expected variable name after 'for'")),
+            };
+
+            self.expect_token(Token::In)?;
+            let array_expr = self.parse_expression()?;
+
+            // Optional condition
+            let condition = if matches!(self.current(), Some(Token::If)) {
+                self.advance(); // consume 'if'
+                Some(Box::new(self.parse_expression()?))
+            } else {
+                None
+            };
+
+            self.expect_token(Token::RightBracket)?;
+
+            return Ok(Expr::ArrayComprehension {
+                expr: Box::new(expr),
+                var_name,
+                array_expr: Box::new(array_expr),
+                condition,
+            });
+        }
+
+        // Regular array - parse remaining elements
+        let mut elements = vec![expr];
+        while matches!(self.current(), Some(Token::Comma)) {
+            self.advance(); // consume ','
+            let expr = self.parse_expression()?;
+            elements.push(expr);
         }
 
         self.expect_token(Token::RightBracket)?;
         Ok(Expr::Array(elements))
     }
+
 
     /// Parse function definition
     fn parse_function(&mut self) -> Result<Expr> {
@@ -395,6 +441,43 @@ impl Parser {
         let body = self.parse_expression()?;
 
         Ok(Expr::Function(params, Box::new(body)))
+    }
+
+    /// Parse string interpolation
+    fn parse_string_interpolation(&mut self, s: &str) -> Result<Expr> {
+        let mut parts = Vec::new();
+        let mut remaining = s;
+
+        while let Some(start) = remaining.find("%(") {
+            // Add literal part before interpolation
+            if start > 0 {
+                parts.push(StringPart::Literal(remaining[..start].to_string()));
+            }
+
+            // Find the closing )s
+            if let Some(end) = remaining[start..].find(")s") {
+                let var_part = &remaining[start + 2..start + end];
+                // For now, treat as identifier. In full implementation, this should be parsed as expression
+                parts.push(StringPart::Interpolation(Expr::Identifier(var_part.to_string())));
+                remaining = &remaining[start + end + 2..];
+            } else {
+                // Not a valid interpolation, treat rest as literal
+                parts.push(StringPart::Literal(remaining.to_string()));
+                break;
+            }
+        }
+
+        // Add remaining literal part
+        if !remaining.is_empty() {
+            parts.push(StringPart::Literal(remaining.to_string()));
+        }
+
+        if parts.is_empty() {
+            // No interpolation found, return as literal string
+            return Ok(Expr::String(s.to_string()));
+        }
+
+        Ok(Expr::StringInterpolation(parts))
     }
 
     /// Expect a specific token, advance if found

@@ -3,7 +3,7 @@
 //! This module provides a pure functional implementation of Jsonnet evaluation.
 //! All evaluation is deterministic: same input always produces same output.
 
-use crate::ast::Expr;
+use crate::ast::{Expr, StringPart};
 use crate::error::{JsonnetError, Result};
 use crate::lexer::Lexer;
 use crate::parser::Parser;
@@ -52,6 +52,13 @@ impl PureEvaluator {
         std_obj.insert("stringChars".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::StringChars));
         std_obj.insert("asciiLower".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::AsciiLower));
         std_obj.insert("asciiUpper".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::AsciiUpper));
+        std_obj.insert("flatMap".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::FlatMap));
+        std_obj.insert("mapWithIndex".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::MapWithIndex));
+        std_obj.insert("lstripChars".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::LstripChars));
+        std_obj.insert("rstripChars".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::RstripChars));
+        std_obj.insert("stripChars".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::StripChars));
+        std_obj.insert("findSubstr".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::FindSubstr));
+        std_obj.insert("repeat".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Repeat));
         context.variables.insert("std".to_string(), JsonnetValue::Object(std_obj));
 
         Self {
@@ -79,6 +86,13 @@ impl PureEvaluator {
         std_obj.insert("stringChars".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::StringChars));
         std_obj.insert("asciiLower".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::AsciiLower));
         std_obj.insert("asciiUpper".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::AsciiUpper));
+        std_obj.insert("flatMap".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::FlatMap));
+        std_obj.insert("mapWithIndex".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::MapWithIndex));
+        std_obj.insert("lstripChars".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::LstripChars));
+        std_obj.insert("rstripChars".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::RstripChars));
+        std_obj.insert("stripChars".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::StripChars));
+        std_obj.insert("findSubstr".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::FindSubstr));
+        std_obj.insert("repeat".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Repeat));
         context.variables.insert("std".to_string(), JsonnetValue::Object(std_obj));
 
         // Add TLA variables to context
@@ -114,6 +128,13 @@ impl PureEvaluator {
         std_obj.insert("stringChars".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::StringChars));
         std_obj.insert("asciiLower".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::AsciiLower));
         std_obj.insert("asciiUpper".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::AsciiUpper));
+        std_obj.insert("flatMap".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::FlatMap));
+        std_obj.insert("mapWithIndex".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::MapWithIndex));
+        std_obj.insert("lstripChars".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::LstripChars));
+        std_obj.insert("rstripChars".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::RstripChars));
+        std_obj.insert("stripChars".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::StripChars));
+        std_obj.insert("findSubstr".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::FindSubstr));
+        std_obj.insert("repeat".to_string(), JsonnetValue::Builtin(JsonnetBuiltin::Repeat));
         context.variables.insert("std".to_string(), JsonnetValue::Object(std_obj));
 
         // Add TLA variables to context
@@ -315,6 +336,67 @@ impl PureEvaluator {
                     }
                     _ => Err(JsonnetError::type_error("Cannot call non-function value")),
                 }
+            }
+            Expr::ArrayComprehension { expr, var_name, array_expr, condition } => {
+                // Basic array comprehension implementation
+                let array_val = self.evaluate_expression(*array_expr)?;
+                let array = array_val.as_array()?;
+
+                let mut result = Vec::new();
+
+                for item in array {
+                    // Bind the loop variable
+                    let original_value = self.context.variables.insert(var_name.clone(), item.clone());
+
+                    // Evaluate the expression
+                    let expr_result = self.evaluate_expression((*expr).clone());
+
+                    // Restore original value
+                    if let Some(orig) = original_value {
+                        self.context.variables.insert(var_name.clone(), orig);
+                    } else {
+                        self.context.variables.remove(&var_name);
+                    }
+
+                    match expr_result {
+                        Ok(value) => {
+                            // Check condition if present
+                            let include = if let Some(ref cond_expr) = condition {
+                                // Bind the loop variable for condition evaluation
+                                let cond_result = self.evaluate_expression((**cond_expr).clone());
+                                match cond_result {
+                                    Ok(JsonnetValue::Boolean(true)) => true,
+                                    Ok(JsonnetValue::Boolean(false)) => false,
+                                    _ => false, // Condition must evaluate to boolean
+                                }
+                            } else {
+                                true
+                            };
+
+                            if include {
+                                result.push(value);
+                            }
+                        }
+                        Err(e) => return Err(e),
+                    }
+                }
+
+                Ok(JsonnetValue::Array(result))
+            }
+            Expr::StringInterpolation(parts) => {
+                let mut result = String::new();
+                for part in parts {
+                    match part {
+                        crate::ast::StringPart::Literal(text) => {
+                            result.push_str(&text);
+                        }
+                        crate::ast::StringPart::Interpolation(expr) => {
+                            let value = self.evaluate_expression(expr)?;
+                            result.push_str(&self.value_to_string(&value));
+                        }
+                    }
+                }
+                Ok(JsonnetValue::String(result))
             }
             Expr::Identifier(name) => {
                 // Look up variable in current context

@@ -375,6 +375,13 @@ pub enum JsonnetBuiltin {
     StringChars,
     AsciiLower,
     AsciiUpper,
+    FlatMap,
+    MapWithIndex,
+    LstripChars,
+    RstripChars,
+    StripChars,
+    FindSubstr,
+    Repeat,
     StdLibFunction(String),
     // Add more builtins as needed
 }
@@ -392,6 +399,13 @@ impl JsonnetBuiltin {
             JsonnetBuiltin::StringChars => crate::stdlib::StdLib::string_chars(args),
             JsonnetBuiltin::AsciiLower => crate::stdlib::StdLib::ascii_lower(args),
             JsonnetBuiltin::AsciiUpper => crate::stdlib::StdLib::ascii_upper(args),
+            JsonnetBuiltin::FlatMap => crate::stdlib::StdLib::flat_map(args),
+            JsonnetBuiltin::MapWithIndex => crate::stdlib::StdLib::map_with_index(args),
+            JsonnetBuiltin::LstripChars => crate::stdlib::StdLib::lstrip_chars(args),
+            JsonnetBuiltin::RstripChars => crate::stdlib::StdLib::rstrip_chars(args),
+            JsonnetBuiltin::StripChars => crate::stdlib::StdLib::strip_chars(args),
+            JsonnetBuiltin::FindSubstr => crate::stdlib::StdLib::find_substr(args),
+            JsonnetBuiltin::Repeat => crate::stdlib::StdLib::repeat(args),
             JsonnetBuiltin::StdLibFunction(func_name) => crate::stdlib::StdLib::call_function(func_name, args),
         }
     }
@@ -408,6 +422,13 @@ impl JsonnetBuiltin {
             JsonnetBuiltin::StringChars => crate::stdlib::StdLib::string_chars(args),
             JsonnetBuiltin::AsciiLower => crate::stdlib::StdLib::ascii_lower(args),
             JsonnetBuiltin::AsciiUpper => crate::stdlib::StdLib::ascii_upper(args),
+            JsonnetBuiltin::FlatMap => crate::stdlib::StdLib::flat_map(args),
+            JsonnetBuiltin::MapWithIndex => crate::stdlib::StdLib::map_with_index(args),
+            JsonnetBuiltin::LstripChars => crate::stdlib::StdLib::lstrip_chars(args),
+            JsonnetBuiltin::RstripChars => crate::stdlib::StdLib::rstrip_chars(args),
+            JsonnetBuiltin::StripChars => crate::stdlib::StdLib::strip_chars(args),
+            JsonnetBuiltin::FindSubstr => crate::stdlib::StdLib::find_substr(args),
+            JsonnetBuiltin::Repeat => crate::stdlib::StdLib::repeat(args),
             JsonnetBuiltin::StdLibFunction(func_name) => {
                 let mut stdlib_with_callback = crate::stdlib::StdLibWithCallback::new(callback);
                 stdlib_with_callback.call_function(func_name, args)
@@ -487,6 +508,13 @@ impl Serialize for JsonnetValue {
                     JsonnetBuiltin::StringChars => "stringChars",
                     JsonnetBuiltin::AsciiLower => "asciiLower",
                     JsonnetBuiltin::AsciiUpper => "asciiUpper",
+                    JsonnetBuiltin::FlatMap => "flatMap",
+                    JsonnetBuiltin::MapWithIndex => "mapWithIndex",
+                    JsonnetBuiltin::LstripChars => "lstripChars",
+                    JsonnetBuiltin::RstripChars => "rstripChars",
+                    JsonnetBuiltin::StripChars => "stripChars",
+                    JsonnetBuiltin::FindSubstr => "findSubstr",
+                    JsonnetBuiltin::Repeat => "repeat",
                     JsonnetBuiltin::StdLibFunction(func_name) => func_name,
                 };
                 map.serialize_entry("name", name)?;
