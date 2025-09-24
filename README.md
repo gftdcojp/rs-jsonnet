@@ -1,11 +1,18 @@
 # rs-jsonnet ( kotoba lang fork )
 
+<div align="center">
+  <img src="public/mushitori_oyako.png" alt="rs-jsonnet Logo" width="200" height="200">
+</div>
+
 [![Crates.io](https://img.shields.io/crates/v/rs-jsonnet.svg)](https://crates.io/crates/rs-jsonnet)
 [![Docs.rs](https://docs.rs/rs-jsonnet/badge.svg)](https://docs.rs/rs-jsonnet)
 [![License](https://img.shields.io/crates/l/rs-jsonnet.svg)](https://github.com/com-junkawasaki/rs-jsonnet/blob/main/LICENSE)
 [![CI](https://github.com/com-junkawasaki/rs-jsonnet/actions/workflows/ci.yml/badge.svg)](https://github.com/com-junkawasaki/rs-jsonnet/actions/workflows/ci.yml)
 
-Pure Rust implementation of Jsonnet 0.21.0, fully compatible with Google Jsonnet.
+<div align="center">
+  <h3>Pure Rust implementation of Jsonnet with <strong>90% test coverage</strong> (38/42 tests passing)</h3>
+  <p>Highly compatible with Google Jsonnet</p>
+</div>
 
 ## 📦 Installation
 
@@ -22,9 +29,9 @@ Or run:
 cargo add rs-jsonnet
 ```
 
-## 🎯 Jsonnet 0.21.0 Complete Compatibility
+## 🎯 Jsonnet Implementation Status
 
-This crate implements all features of [Google Jsonnet v0.21.0](https://github.com/google/jsonnet) in pure Rust.
+This crate implements **90% of Jsonnet features** with 38/42 tests passing, providing a highly functional Jsonnet implementation in pure Rust.
 
 ### ✅ Implemented Features
 
@@ -43,99 +50,45 @@ This crate implements all features of [Google Jsonnet v0.21.0](https://github.co
 - ✅ Error handling with try/catch
 - ✅ Assertions
 
-#### **Standard Library (89 Functions)**
+#### **Standard Library (~80 Functions Implemented)**
 ##### ✅ **Implemented Functions**
 
-**Array Functions (16/16):**
-- ✅ `length`, `makeArray`, `filter`, `map`, `foldl`, `foldr`, `range`, `member`, `count`, `uniq`, `sort`, `reverse`
-- ✅ `find`, `all`, `any`
+**Array Functions:**
+- ✅ `length`, `makeArray`, `range`, `member`, `count`
+- ✅ `reverse`, `sort`, `uniq`
+- ✅ `flatMap`, `mapWithIndex`
+- ✅ `set`, `setMember`, `setUnion`, `setInter`, `setDiff`
 
-**String Functions (24/24):**
-- ✅ `length`, `substr`, `startsWith`, `endsWith`, `contains`, `split`, `join`, `char`, `codepoint`, `toString`, `parseInt`
-- ✅ `encodeUTF8`, `decodeUTF8`, `md5`, `base64`, `base64Decode`, `escapeStringJson`, `escapeStringYaml`, `escapeStringPython`
-- ✅ `escapeStringBash`, `escapeStringDollars`, `stringChars`, `stringBytes`, `format`, `toLower`, `toUpper`, `trim`
+**String Functions:**
+- ✅ `length`, `substr`, `startsWith`, `endsWith`, `split`, `join`
+- ✅ `toString`, `stringChars`, `asciiLower`, `asciiUpper`
+- ✅ `lstripChars`, `rstripChars`, `stripChars`, `findSubstr`, `repeat`
 
-**Object Functions (9/9):**
-- ✅ `objectFields`, `objectFieldsAll`, `objectValues`, `objectValuesAll`, `objectHas`, `objectHasAll`
-- ✅ `get`, `mergePatch`, `prune`, `mapWithKey`
+**Object Functions:**
+- ✅ Basic object field access and manipulation
 
-**Math Functions (17/17):**
-- ✅ `abs`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `floor`, `ceil`, `round`
-- ✅ `pow`, `exp`, `log`, `modulo`, `max`, `min`, `clamp`
+**Math Functions:**
+- ✅ Basic arithmetic operations
 
-**Type Functions (6/6):**
-- ✅ `type`, `isArray`, `isBoolean`, `isFunction`, `isNumber`, `isObject`, `isString`
+**Type Functions:**
+- ✅ `type`
 
-**Utility Functions (6/6):**
-- ✅ `assertEqual`, `parseJson`, `manifestJson`, `manifestJsonEx`, `trace`
+**Utility Functions:**
+- ✅ `assertEqual`, `manifestJson`, `trace`
 
-**YAML Support (1/1):**
-- ✅ `manifestYaml` (with `yaml` feature flag)
+##### ❌ **Not Yet Fully Implemented**
+- Some advanced array functions (`filter`, `map`, `foldl`, `foldr` - basic implementations only)
+- Hash functions, encoding/decoding functions
+- Advanced math functions
+- YAML support (feature flag available)
+- Some higher-order functions and advanced utilities
 
-##### ❌ **Not Yet Implemented (69 functions remaining)**
-
-**Recently Added (Phase 1):**
-- ✅ `id` - Identity function
-- ✅ `equals` - Deep equality comparison
-- ✅ `lines` - String to lines conversion
-- ✅ `strReplace` - String replacement
-
-**Recently Added (Phase 2):**
-- ✅ `sha1`/`sha256`/`sha3`/`sha512` - Hash functions
-- ✅ `asciiLower`/`asciiUpper` - ASCII case conversion
-- ✅ `set`/`setMember`/`setUnion`/`setInter`/`setDiff` - Set operations
-
-**Recently Added (Phase 3):**
-- ✅ `flatMap` - Flatten arrays after mapping
-- ✅ `mapWithIndex` - Map with element indices
-- ✅ `lstripChars`/`rstripChars`/`stripChars` - Character stripping
-- ✅ `findSubstr` - Find substring positions
-- ✅ `repeat` - Repeat values/strings
-
-**Recently Added (Phase 4):**
-- ✅ `manifestIni`/`manifestPython`/`manifestCpp` - Code generation functions
-- ✅ `manifestXmlJsonml` - XML generation from JsonML format
-- ✅ `log2`/`log10` - Base-2 and base-10 logarithms
-- ✅ `log1p`/`expm1` - Log/exp functions for values near 1
-
-**Recently Added (Phase 5):**
-- ✅ `remove`/`removeAt` - Array element removal
-- ✅ `flattenArrays` - Deep array flattening
-        - ✅ `objectKeysValues`/`objectRemoveKey` - Object manipulation
-        - ✅ `objectFieldsEx`/`objectValuesEx` - Extended object field/value access
-        - ✅ `isInteger`/`isDecimal`/`isEven`/`isOdd` - Additional type checking
-
-**Recently Added (Phase 6):**
-- ✅ `sort`/`uniq` - Array sorting and uniqueness (complete implementations)
-- ✅ `mergePatch` - Object merging with null value removal (complete implementation)
-- ✅ `format` - String formatting function with positional arguments (complete implementation)
-- ✅ `makeArray` - Array creation with function (improved implementation)
-- ✅ `manifestJsonEx` - Custom indentation JSON manifest (complete implementation)
-- ✅ `escapeStringYaml` - YAML string escaping (complete implementation)
-- ✅ `prune` - Null value pruning from objects/arrays (complete implementation)
-- ✅ `mapWithKey` - Object key-value mapping (improved implementation)
-
-**🎉 COMPLETE IMPLEMENTATION ACHIEVED!**
-
-**All 35 Remaining Utility Functions Implemented:**
-- ✅ **Array Operations**: `slice`, `zip`, `transpose`, `flatten`, `sum`, `product`, `all`, `any`, `chunk`, `unique`
-- ✅ **Set Operations**: `difference`, `intersection`, `symmetricDifference`, `isSubset`, `isSuperset`, `isDisjoint`
-- ✅ **Advanced Math**: `cartesian`, `cross`, `dot`, `norm`, `normalize`, `distance`, `angle`
-- ✅ **2D Transformations**: `rotate`, `scale`, `translate`, `reflect`, `affine`
-- ✅ **String Operations**: `splitLimit`, `join`, `replace`, `contains`
-- ✅ **Higher-Order Functions**: `sortBy`, `groupBy`, `partition` (placeholder implementations)
-
-**Recently Implemented:**
-- ✅ **Higher-Order Functions**: `filter`, `map`, `foldl`, `foldr` (complete implementation with function callbacks)
-- ✅ **Function Calling Mechanism**: Full support for stdlib function callbacks
-- ✅ **Complete Standard Library**: All 175 Jsonnet std functions implemented
-
-### ✅ **Enhanced Function Calling Mechanism**
-- **Closure Support**: Functions now properly capture their environment
-- **Recursive Function Calls**: Functions can call other functions
-- **Environment Management**: Proper scope handling for nested functions
-
-**Compatibility:** **175/175 functions implemented (100%)**
+### ✅ **Enhanced Features**
+- **String Interpolation**: `%(name)s` syntax support
+- **Array Comprehensions**: `[x for x in arr]` syntax (basic implementation)
+- **Function Definitions and Calls**: Full support with closures
+- **Bracket Notation**: `obj["key"]` and `arr[index]` syntax
+- **Local Variables**: `local` bindings with proper scoping
 
 #### **API Compatibility**
 - ✅ `evaluate()` - Evaluate Jsonnet code to JsonnetValue
@@ -170,12 +123,16 @@ Run the comprehensive test suite:
 cargo test
 ```
 
+**Current Status:** 38/42 tests passing (90% coverage)
+
 Tests cover:
 - ✅ Basic evaluation (literals, variables, functions)
 - ✅ Complex expressions and operator precedence
-- ✅ Standard library functions
+- ✅ Standard library functions (partially implemented)
+- ✅ String interpolation and array comprehensions
 - ✅ Error handling and edge cases
-- ✅ JSON/YAML output formatting
+- ✅ JSON output formatting
+- 🔄 Advanced features (4 tests remaining)
 
 ### 📚 Usage
 
@@ -184,13 +141,14 @@ use rs_jsonnet::{evaluate, evaluate_to_json};
 
 // Evaluate Jsonnet code
 let result = evaluate(r#"
-  local person = { name: "Alice", age: 30 };
-  local greeting(name) = "Hello, " + name + "!";
-  {
-    message: greeting(person.name),
-    data: person,
-    doubled_age: person.age * 2,
-  }
+// Basic object and function
+local person = { name: "Alice", age: 30 };
+local greeting(name) = "Hello, " + name + "!";
+{
+  message: greeting(person.name),
+  data: person,
+  doubled_age: person.age * 2,
+}
 "#)?;
 
 println!("Result: {:?}", result);
@@ -199,6 +157,25 @@ println!("Result: {:?}", result);
 let json = evaluate_to_json(r#"{ name: "World", count: 42 }"#)?;
 println!("JSON: {}", json);
 ```
+
+### 🚀 Recent Developments
+
+**Phase 1: Core Language Features** ✅
+- String interpolation with `%(name)s` syntax
+- Array comprehensions `[x for x in arr]` (basic implementation)
+- Function definitions and closures
+- Bracket notation for objects and arrays
+
+**Phase 2: Standard Library Extensions** ✅
+- Set operations: `set`, `setMember`, `setUnion`, `setInter`, `setDiff`
+- String utilities: `asciiLower`, `asciiUpper`, `lstripChars`, `rstripChars`, `stripChars`
+- Array functions: `flatMap`, `mapWithIndex`, `repeat`
+- String search: `findSubstr`
+
+**Current Status:** 38/42 tests passing (90% coverage)
+- ✅ **Working:** Basic Jsonnet programs, objects, arrays, functions, string interpolation
+- 🔄 **In Progress:** Advanced array functions, complex function calls
+- ❌ **Remaining:** 4 failing tests (phase4, phase5, phase6 advanced features)
 
 ### ⚡ Performance
 
@@ -211,17 +188,27 @@ println!("JSON: {}", json);
 
 | Feature | Google Jsonnet 0.21.0 | rs-jsonnet |
 |---------|----------------------|----------------|
-| Language spec | ✅ Complete | ✅ Complete |
-| Standard library | ✅ 80+ functions | ✅ 80+ functions |
+| Language spec | ✅ Complete | ✅ 90% Complete |
+| Standard library | ✅ 175 functions | ✅ ~80 functions |
 | Import system | ✅ import/importstr | ✅ Implemented |
 | Error handling | ✅ try/catch/error | ✅ Implemented |
 | JSON output | ✅ manifestJson | ✅ Implemented |
-| YAML output | ✅ manifestYaml | ✅ Feature flag |
+| YAML output | ✅ manifestYaml | 🔄 Feature flag |
+| Array comprehensions | ✅ `[x for x in arr]` | ✅ Basic implementation |
+| String interpolation | ✅ `%(name)s` | ✅ Implemented |
 | Performance | C++ optimized | Rust zero-cost |
 
 ### 🤝 Contributing
 
-This implementation aims for 100% compatibility with Google Jsonnet 0.21.0. If you find any discrepancies or missing features, please open an issue.
+**Help us reach 100% compatibility!** This implementation currently has **90% test coverage** with 38/42 tests passing.
+
+**Priority Areas for Contributions:**
+- Complete advanced array functions (`filter`, `map`, `foldl`, `foldr` with full function callbacks)
+- Implement remaining standard library functions (hash functions, encoding, advanced math)
+- Add YAML support and advanced manifest functions
+- Fix the 4 remaining failing tests (phase4, phase5, phase6)
+
+If you find any discrepancies or want to help implement missing features, please open an issue or submit a pull request!
 
 ### 📄 License
 
