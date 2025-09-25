@@ -211,23 +211,13 @@ impl Lexer {
                 }
                 // String literals
                 '"' => {
-                    self.advance();
-                    let start = self.position;
-                    while let Some(ch) = self.current() {
-                        if ch == '"' {
-                            break;
-                        }
-                        if ch == '\\' {
-                            self.advance(); // Skip escape character
-                        }
-                        self.advance();
+                    if let Some(value) = self.parse_double_quote(&mut tokens) {
+                        return value;
                     }
-                    if let Some('"') = self.current() {
-                        self.advance();
-                        let string = &self.source[start..self.position - 1];
-                        tokens.push(Token::String(string.to_string()));
-                    } else {
-                        return Err(JsonnetError::parse_error(self.line, self.column, "Unterminated string"));
+                }
+                '\'' => {
+                    if let Some(value) = self.parse_single_quote(&mut tokens) {
+                        return value;
                     }
                 }
                 // Operators and punctuation
@@ -351,5 +341,49 @@ impl Lexer {
 
         tokens.push(Token::Eof);
         Ok(tokens)
+    }
+
+    fn parse_double_quote(&mut self, tokens: &mut Vec<Token>) -> Option<Result<Vec<Token>>> {
+        self.advance();
+        let start = self.position;
+        while let Some(ch) = self.current() {
+            if ch == '"' {
+                break;
+            }
+            if ch == '\\' {
+                self.advance(); // Skip escape character
+            }
+            self.advance();
+        }
+        if let Some('"') = self.current() {
+            self.advance();
+            let string = &self.source[start..self.position - 1];
+            tokens.push(Token::String(string.to_string()));
+        } else {
+            return Some(Err(JsonnetError::parse_error(self.line, self.column, "Unterminated string")));
+        }
+        None
+    }
+
+    fn parse_single_quote(&mut self, tokens: &mut Vec<Token>) -> Option<Result<Vec<Token>>> {
+        self.advance();
+        let start = self.position;
+        while let Some(ch) = self.current() {
+            if ch == '\'' {
+                break;
+            }
+            if ch == '\\' {
+                self.advance(); // Skip escape character
+            }
+            self.advance();
+        }
+        if let Some('\'') = self.current() {
+            self.advance();
+            let string = &self.source[start..self.position - 1];
+            tokens.push(Token::String(string.to_string()));
+        } else {
+            return Some(Err(JsonnetError::parse_error(self.line, self.column, "Unterminated string")));
+        }
+        None
     }
 }
