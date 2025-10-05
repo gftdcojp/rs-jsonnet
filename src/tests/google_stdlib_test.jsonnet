@@ -1637,4 +1637,8 @@ std.assertEqual(std.trim('string with tabs at end\t\t'), 'string with tabs at en
 // To avoid ambiguity but allow the code to pass unchanged through jsonnetfmt, this now uses a std.char() call.
 std.assertEqual(std.trim('string with other special whitespaces at end\f\r\u0085' + std.char(160)), 'string with other special whitespaces at end') &&
 
+// Test parseInt safe range validation
+std.assertEqual(std.parseInt('9007199254740991'), 9007199254740991) &&  // MAX_SAFE_INTEGER (2^53 - 1)
+std.assertEqual(std.parseInt('-9007199254740991'), -9007199254740991) &&  // MIN_SAFE_INTEGER
+
 true
