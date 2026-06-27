@@ -112,7 +112,7 @@ impl Lexer {
 
     /// Get the current character
     fn current(&self) -> Option<char> {
-        self.source.chars().nth(self.position)
+        self.source[self.position..].chars().next()
     }
 
     /// Advance to the next character
@@ -124,13 +124,16 @@ impl Lexer {
             } else {
                 self.column += 1;
             }
-            self.position += 1;
+            // Advance by the byte length of the character to handle multi-byte UTF-8 characters
+            self.position += ch.len_utf8();
         }
     }
 
     /// Peek at the next character
     fn peek(&self) -> Option<char> {
-        self.source.chars().nth(self.position + 1)
+        let mut chars = self.source[self.position..].chars();
+        chars.next();
+        chars.next()
     }
 
     /// Check if the current position matches a string
@@ -140,7 +143,7 @@ impl Lexer {
 
     /// Advance by a string
     fn advance_by(&mut self, s: &str) {
-        for _ in 0..s.len() {
+        for _ in s.chars() {
             self.advance();
         }
     }
@@ -223,8 +226,9 @@ impl Lexer {
                         self.advance();
                     }
                     if let Some('"') = self.current() {
+                        let end = self.position;
                         self.advance();
-                        let string = &self.source[start..self.position - 1];
+                        let string = &self.source[start..end];
                         tokens.push(Token::String(string.to_string()));
                     } else {
                         return Err(JsonnetError::parse_error(self.line, self.column, "Unterminated string"));

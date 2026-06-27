@@ -725,9 +725,7 @@ mod tests {
         // Test with Unicode characters (should remain unchanged)
         let result = evaluate(r#"std.asciiLower("HELLO ñoños")"#);
         assert!(result.is_ok());
-        // Note: The input appears to be parsed as "HELLO ñoñ" instead of "HELLO ñoños"
-        // This might be a parsing issue with Unicode characters
-        assert_eq!(result.unwrap(), JsonnetValue::String("hello ñoñ".to_string()));
+        assert_eq!(result.unwrap(), JsonnetValue::String("hello ñoños".to_string()));
     }
 
     #[test]
@@ -1270,5 +1268,79 @@ mod tests {
         let json = result.unwrap();
         assert!(json.contains("\"name\": \"test\""));
         assert!(json.contains("\"value\": 42"));
+    }
+
+    #[test]
+    fn test_unicode_string_literals() {
+        // Test various Unicode strings
+        let result = evaluate(r#""Hello 世界""#);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), JsonnetValue::String("Hello 世界".to_string()));
+
+        // Test emoji
+        let result = evaluate(r#""Hello 👋🌍""#);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), JsonnetValue::String("Hello 👋🌍".to_string()));
+
+        // Test various accented characters
+        let result = evaluate(r#""café résumé naïve""#);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), JsonnetValue::String("café résumé naïve".to_string()));
+
+        // Test Cyrillic
+        let result = evaluate(r#""Привет мир""#);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), JsonnetValue::String("Привет мир".to_string()));
+
+        // Test mixed content
+        let result = evaluate(r#""ASCII, ñoños, 世界, 👋""#);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), JsonnetValue::String("ASCII, ñoños, 世界, 👋".to_string()));
+    }
+
+    #[test]
+    fn test_unicode_in_objects() {
+        // Test Unicode in object keys and values
+        let result = evaluate(r#"{ "名前": "太郎" }"#);
+        assert!(result.is_ok());
+        if let JsonnetValue::Object(obj) = result.unwrap() {
+            assert_eq!(obj.get("名前"), Some(&JsonnetValue::String("太郎".to_string())));
+        } else {
+            panic!("Expected object");
+        }
+    }
+
+    #[test]
+    fn test_unicode_in_arrays() {
+        // Test Unicode in arrays
+        let result = evaluate(r#"["hello", "ñoños", "世界", "👋"]"#);
+        assert!(result.is_ok());
+        if let JsonnetValue::Array(arr) = result.unwrap() {
+            assert_eq!(arr.len(), 4);
+            assert_eq!(arr[0], JsonnetValue::String("hello".to_string()));
+            assert_eq!(arr[1], JsonnetValue::String("ñoños".to_string()));
+            assert_eq!(arr[2], JsonnetValue::String("世界".to_string()));
+            assert_eq!(arr[3], JsonnetValue::String("👋".to_string()));
+        } else {
+            panic!("Expected array");
+        }
+    }
+
+    #[test]
+    fn test_unicode_with_stdlib_functions() {
+        // Test std.length with Unicode
+        let result = evaluate(r#"std.length("ñoños")"#);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), JsonnetValue::Number(5.0));
+
+        // Test string concatenation with Unicode
+        let result = evaluate(r#""Hello " + "世界""#);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), JsonnetValue::String("Hello 世界".to_string()));
+
+        // Test std.substr with Unicode
+        let result = evaluate(r#"std.substr("ñoños", 0, 3)"#);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), JsonnetValue::String("ñoñ".to_string()));
     }
 }

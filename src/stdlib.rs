@@ -1219,7 +1219,7 @@ impl StdLib {
         Self::check_args(&args, 1, "length")?;
         match &args[0] {
             JsonnetValue::Array(arr) => Ok(JsonnetValue::number(arr.len() as f64)),
-            JsonnetValue::String(s) => Ok(JsonnetValue::number(s.len() as f64)),
+            JsonnetValue::String(s) => Ok(JsonnetValue::number(s.chars().count() as f64)),
             JsonnetValue::Object(obj) => Ok(JsonnetValue::number(obj.len() as f64)),
             _ => Err(JsonnetError::type_error("length() requires array, string, or object")),
         }
@@ -1255,11 +1255,13 @@ impl StdLib {
         let from = args[1].as_number()? as usize;
         let len = args[2].as_number()? as usize;
 
-        if from >= s.len() {
+        let chars: Vec<char> = s.chars().collect();
+        if from >= chars.len() {
             Ok(JsonnetValue::string(String::new()))
         } else {
-            let end = (from + len).min(s.len());
-            Ok(JsonnetValue::string(s[from..end].to_string()))
+            let end = (from + len).min(chars.len());
+            let result: String = chars[from..end].iter().collect();
+            Ok(JsonnetValue::string(result))
         }
     }
 
