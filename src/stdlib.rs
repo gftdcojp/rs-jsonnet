@@ -1609,7 +1609,24 @@ impl StdLib {
         Self::check_args(&args, 1, "parseInt")?;
         let s = args[0].as_string()?;
         match s.parse::<f64>() {
-            Ok(n) => Ok(JsonnetValue::number(n)),
+            Ok(n) => {
+                // IEEE 754 doubles can precisely represent integers up to 2^53 - 1
+                // Beyond this range, precision is lost
+                const MAX_SAFE_INTEGER: f64 = 9007199254740991.0; // 2^53 - 1
+                const MIN_SAFE_INTEGER: f64 = -9007199254740991.0; // -(2^53 - 1)
+                
+                if !n.is_finite() {
+                    return Err(JsonnetError::runtime_error("Not an integer: numeric value is not finite"));
+                }
+                
+                if n < MIN_SAFE_INTEGER || n > MAX_SAFE_INTEGER {
+                    return Err(JsonnetError::runtime_error(
+                        "Not an integer: numeric value outside safe integer range"
+                    ));
+                }
+                
+                Ok(JsonnetValue::number(n))
+            }
             Err(_) => Err(JsonnetError::runtime_error("Invalid number format")),
         }
     }

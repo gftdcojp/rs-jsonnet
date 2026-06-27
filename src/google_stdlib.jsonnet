@@ -96,20 +96,36 @@ limitations under the License.
   parseInt(str)::
     assert std.isString(str) : 'Expected string, got ' + std.type(str);
     assert std.length(str) > 0 && str != '-' : 'Not an integer: "%s"' % [str];
-    if str[0] == '-' then
+    local result = if str[0] == '-' then
       -parse_nat(str[1:], 10)
     else
-      parse_nat(str, 10),
+      parse_nat(str, 10);
+    // IEEE 754 doubles can precisely represent integers up to 2^53 - 1
+    local max_safe_integer = 9007199254740991;  // 2^53 - 1
+    local min_safe_integer = -9007199254740991;  // -(2^53 - 1)
+    assert result >= min_safe_integer && result <= max_safe_integer :
+      'Not an integer: numeric value outside safe integer range';
+    result,
 
   parseOctal(str)::
     assert std.isString(str) : 'Expected string, got ' + std.type(str);
     assert std.length(str) > 0 : 'Not an octal number: ""';
-    parse_nat(str, 8),
+    local result = parse_nat(str, 8);
+    // IEEE 754 doubles can precisely represent integers up to 2^53 - 1
+    local max_safe_integer = 9007199254740991;  // 2^53 - 1
+    assert result <= max_safe_integer :
+      'Not an octal number: numeric value outside safe integer range';
+    result,
 
   parseHex(str)::
     assert std.isString(str) : 'Expected string, got ' + std.type(str);
     assert std.length(str) > 0 : 'Not hexadecimal: ""';
-    parse_nat(str, 16),
+    local result = parse_nat(str, 16);
+    // IEEE 754 doubles can precisely represent integers up to 2^53 - 1
+    local max_safe_integer = 9007199254740991;  // 2^53 - 1
+    assert result <= max_safe_integer :
+      'Not hexadecimal: numeric value outside safe integer range';
+    result,
 
   split(str, c)::
     assert std.isString(str) : 'std.split first parameter must be a String, got ' + std.type(str);
